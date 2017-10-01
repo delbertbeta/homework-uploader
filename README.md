@@ -1,6 +1,6 @@
 # homework-uploader
 
-> A homework uploader for class management.
+> The homework uploader for class management.
 
 ## Build Setup
 
@@ -15,4 +15,4 @@ npm run dev
 npm run build
 ```
 
-For detailed explanation on how things work, consult the [docs for vue-loader](http://vuejs.github.io/vue-loader).
+For more information see the [docs for vueify](https://github.com/vuejs/vueify).

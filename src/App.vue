@@ -1,60 +1,507 @@
 <template>
-  <div id="app">
-    <img src="./assets/logo.png">
-    <h1>{{ msg }}</h1>
-    <h2>Essential Links</h2>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank">Forum</a></li>
-      <li><a href="https://gitter.im/vuejs/vue" target="_blank">Gitter Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank">Twitter</a></li>
-    </ul>
-    <h2>Ecosystem</h2>
-    <ul>
-      <li><a href="http://router.vuejs.org/" target="_blank">vue-router</a></li>
-      <li><a href="http://vuex.vuejs.org/" target="_blank">vuex</a></li>
-      <li><a href="http://vue-loader.vuejs.org/" target="_blank">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank">awesome-vue</a></li>
-    </ul>
+  <div id="app" class="app">
+    <div class="cover" :style="background">
+      <div class="shadow"></div>
+      <div class="line"></div>
+    </div>
+    <div class="left">
+      <div class="title-area">
+        <p class="horizontal-text">HOMEWORK UPLOADER</p>
+        <p class="sub-text">Author:<br />delbertbeta</p>
+        </p>
+      </div>
+    </div>
+    <div class="right">
+      <div class="border-area">
+        <div class="info-page" :class="{hide: !nowFirstPage}">
+          <div class="first-row">
+            <select class="select" v-model="homework">
+              <option disabled value="">Select a homework</option>
+              <option v-for="(homework,index) in homeworkList" :value="index" :key="homework.name">{{ homework.name }}</option>
+            </select>
+          </div>
+          <div class="second-row">
+            <input class="input" v-model="studentNumber" type="tel" placeholder="Student ID" />
+          </div>
+          <img @click="goToNext" class="next-arrow" src="./assets/right_arrow.png" />
+        </div>
+        <div class="upload-page" :class="{hide: nowFirstPage}" @dragleave="dragLeave" @drop="dragDrop" @dragover="dragOver">
+          <div class="drag-status" :class="{'over': isDragOver}"></div>
+          <div class="progress"></div>
+          <div class="upload-info">
+            <img class="upload-icon" src="./assets/upload.png" />
+            <p>拖放或点击此处打开文件</p>
+            <p>{{ multifile ? '您可以上传多个文件，它们都会被保存下来' : '您仅可以上传一个文件，新的文件将会覆盖旧的文件'}} </p>
+          </div>
+          <div class="hide-scrollbar">
+            <transition-group name="filelist" tag="div" id="fileList" class="file-info" @dragleave="dragLeave" @drop="dragDrop" @dragover="dragOver">
+              <p v-for="(file, index) in fileList" :key="file.filename" class="file-text" :class="{error: file.status === 'error', running: file.status === 'running', ok: file.status === 'ok'}"> {{ file.filename }}</p>
+            </transition-group>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 export default {
   name: 'app',
-  data () {
+  data() {
     return {
-      msg: 'Welcome to Your Vue.js App'
+      homework: '',
+      homeworkList: [
+        {
+          name: '物理实验课',
+          multifile: false
+        }, {
+          name: '数据结构实验',
+          multifile: false
+        }
+      ],
+      nowFirstPage: false,
+      studentNumber: '',
+      isDragOver: false,
+      fileList: [
+      ]
+    }
+  },
+  computed: {
+    background: function() {
+      let range = 6 - 1;
+      let rand = Math.random();
+      let index = (1 + Math.round(rand * range));
+      let url = 'url(./assets/background_image_' + index + '.jpg)';
+      return {
+        backgroundImage: url
+      }
+    },
+    multifile: function() {
+      let work = this.homeworkList[this.homework];
+      if (work === undefined) return true;
+      else return work.multifile;
+    },
+  },
+  methods: {
+    goToNext: function() {
+      if (this.homework === '' || this.studentNumber === '') {
+        return;
+      } else {
+        // some logic here...
+        this.nowFirstPage = false;
+      }
+      (function() {
+        let fileListDom = document.getElementById('fileList');
+        let scrolled = false;
+        fileListDom.addEventListener('scroll', function() {
+          // console.log(fileListDom.scrollTop + "." + fileListDom.scrollHeight )
+          if (fileListDom.scrollTop < fileListDom.scrollHeight - fileListDom.clientHeight) {
+            scrolled = true;
+          } else {
+            scrolled = false;
+          }
+        })
+        setInterval(function() {
+          if (scrolled === false)
+            fileListDom.scrollTop = fileListDom.scrollTopMax;
+        }, 100)
+      })()
+    },
+    dragOver: function(event) {
+      event.preventDefault();
+      this.isDragOver = true;
+      event.dataTransfer.dropEffect = 'copy';
+    },
+    dragLeave: function(event) {
+      event.preventDefault();
+      this.isDragOver = false;
+    },
+    dragDrop: function(event) {
+      event.preventDefault();
+      this.isDragOver = false;
+
+      let dt = event.dataTransfer;
+      let files = dt.files;
+
+      this.filesHandle(files);
+    },
+    filesHandle: function(files) {
+      if (this.multifile) {
+        for (let i = 0; i < files.length; i++) {
+          let file = files[i];
+          if (file.type === '') continue;
+          let fileListItem = {
+            filename: file.name,
+            status: 'running',
+            file: file
+          };
+          this.fileList.push(fileListItem);
+        }
+      } else {
+        let file = files[0];
+        if (file.type === '') return;
+        let fileList = [{
+          filename: file.name,
+          status: 'running',
+          file: file
+        }];
+        this.fileList = fileList;
+      }
     }
   }
 }
 </script>
 
 <style lang="scss">
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+html {
+  height: 100%;
+  width: 100%;
+  font-family: "Microsoft Yahei UI";
+  min-width: 960px;
+  min-height: 480px;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  .app {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    .left {
+      position: absolute;
+      width: 54%;
+      height: 100%;
+      overflow: hidden;
+      .title-area {
+        animation: move-in-from-right 1s ease 0.6s 1;
+        animation-fill-mode: both;
+        position: absolute;
+        right: 25px;
+        top: 50%;
+        text-align: right; // transform: translateY(-50%);
+        .horizontal-text {
+          margin: 12px 0;
+          color: white;
+          font-size: 40px;
+          font-weight: 900;
+        }
+        .sub-text {
+          // line-height: 28px;
+          // display: inline-block;
+          // text-align: left;
+          writing-mode: tb-rl;
+          color: white;
+          font-size: 24px;
+          font-weight: 300;
+          transform: rotate(180deg) translateX(100%);
+          margin-left: 100%;
+          padding-bottom: 8px;
+          border-bottom: solid 2px rgba(255, 255, 255, 0.6);
+        }
+      }
+    }
+    .right {
+      position: absolute;
+      left: 54%;
+      width: 46%;
+      height: 100%;
+      overflow: hidden;
+      .border-area {
+        animation: move-in-from-left 1s ease 0.6s 1;
+        animation-fill-mode: both;
+        position: absolute;
+        top: 50%; // transform: translateY(-50%);
+        width: 300px;
+        height: 300px;
+        border-radius: 10px;
+        border: dashed 2px rgba(255, 255, 255, 0.6);
+        margin-left: 25px;
+        overflow: hidden;
+        .info-page {
+          transition: all 1s ease;
+          .first-row {
+            margin-top: 55px;
+          }
+          .second-row {
+            margin-top: 30px;
+          }
+          .next-arrow {
+            padding: 10px;
+            margin-top: 60px;
+            width: 40px;
+            height: auto;
+            margin-left: 125px;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.5s ease;
+            background-color: rgba(0, 0, 0, 0)
+          }
+          .next-arrow:hover {
+            background-color: rgba(255, 255, 255, 0.1)
+          }
+        }
+        .upload-page {
+          transition: all 1s ease;
+          overflow: hidden;
+          height: 100%;
+          width: 100%;
+          position: absolute;
+          top: 0;
+          cursor: pointer;
+          .drag-status {
+            pointer-events: none;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            background-color: rgba(255, 255, 255, 0.2);
+          }
+          .drag-status.over {
+            opacity: 1;
+          }
+          .progress {
+            pointer-events: none;
+            z-index: 0;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            bottom: -100%;
+            transition: all 0.5s ease;
+            background-image: linear-gradient(to bottom, rgba(16, 162, 224, 0.6), rgba(54, 228, 255, 0.6));
+          }
+          .progress.running {
+            animation: wave 5s ease-in-out 0s infinite;
+          }
+          .upload-info {
+            pointer-events: none;
+            text-align: center;
+            color: white;
+            font-size: 14px;
+            padding: 0px 20px;
+            margin-top: 60px;
+            .upload-icon {
+              height: 40px;
+              width: 40px;
+            }
+          }
+          .hide-scrollbar {
+            margin-top: 36px;
+            height: 38px;
+            width: 228px;
+            margin-left: 36px;
+            overflow: hidden;
+            position: relative;
+            .file-info {
+              position: absolute;
+              color: white;
+              font-size: 12px;
+              width: 248px;
+              height: 38px;
+              overflow-y: auto;
+              overflow-x: hidden;
+              .file-text {
+                pointer-events: none;
+                width: 210px;
+                margin: 2px 0px;
+                padding-right: 36px;
+                position: relative;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow: hidden;
+              }
+              .file-text.running::after {
+                content: ' ';
+                display: block;
+                position: absolute;
+                height: 16px;
+                width: 16px;
+                top: 0px;
+                right: 20px;
+                background-image: url(./assets/running.png);
+                background-size: 100%;
+                animation: rotate 2s linear 0s infinite;
+              }
+              .file-text.ok::after {
+                content: ' ';
+                display: block;
+                position: absolute;
+                height: 16px;
+                width: 16px;
+                top: 0px;
+                right: 2px;
+                background-image: url(./assets/ok.png);
+                background-size: 100%;
+              }
+              .file-text.error::after {
+                content: ' ';
+                display: block;
+                position: absolute;
+                height: 16px;
+                width: 16px;
+                top: 0px;
+                right: 2px;
+                background-image: url(./assets/error.png);
+                background-size: 100%;
+              }
+            }
+          }
+        }
+        .upload-page.hide {
+          transform: translateX(100%);
+        }
+        .info-page.hide {
+          transform: translateX(-100%);
+        }
+      }
+    }
+  }
+  .cover {
+    position: fixed;
+    z-index: -1;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    background-size: cover;
+    background-position: center;
+    .line {
+      position: absolute;
+      width: 2px;
+      height: 400px;
+      left: 54%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+    }
+    .shadow {
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+  }
+}
+
+.select {
+  outline: none;
+  width: 80%;
+  height: 30px;
+  margin-left: 10%;
+  background-color: transparent;
+  border: none;
+  border-bottom: solid 2px rgba(255, 255, 255, 0.8); // border-radius: 2px;
+  color: white;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  font-size: 16px;
+  text-align-last: center;
+}
+
+.select option {
+  color: black;
+}
+
+.select:active {
+  outline: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.input {
+  outline: none;
+  width: 80%;
+  height: 30px;
+  margin-left: 10%; // padding: 0px 2px;
+  // box-sizing: border-box;
+  background-color: transparent;
+  border: none;
+  border-bottom: solid 2px rgba(255, 255, 255, 0.8);
+  color: rgba(0, 0, 0, 0.8);
+  transition: all 0.5s ease;
+  color: white;
+  font-size: 16px;
   text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
 }
 
-h1, h2 {
-  font-weight: normal;
+.input:focus {
+  border-bottom: solid 2px rgba(255, 255, 255, 1);
 }
 
-ul {
-  list-style-type: none;
-  padding: 0;
+input::-webkit-input-placeholder {
+  color: #ddd;
 }
 
-li {
-  display: inline-block;
-  margin: 0 10px;
+input:-moz-placeholder {
+  color: #ddd;
 }
 
-a {
-  color: #42b983;
+input::-moz-placeholder {
+  color: #ddd;
+}
+
+input:-ms-input-placeholder {
+  color: #ddd;
+}
+
+
+@keyframes move-in-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-100%) scaleX(0.0) translateY(-50%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0%) scaleX(1) translateY(-50%);
+  }
+}
+
+@keyframes move-in-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(100%) scaleX(0.0) translateY(-50%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0%) scaleX(1) translateY(-50%);
+  }
+}
+
+@keyframes wave {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(5deg) scale(1.2);
+  }
+  75% {
+    transform: rotate(-5deg) scale(1.2);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.filelist-enter-active,
+.filelist-leave-active {
+  transition: all 0.5s ease;
+}
+
+.filelist-enter,
+.filelist-leave-to {
+  opacity: 0;
+  transform: translateY(4px);
 }
 </style>
