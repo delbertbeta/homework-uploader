@@ -31,7 +31,7 @@
           <div class="upload-info">
             <img class="upload-icon" src="./assets/upload.png" />
             <p>拖放或点击此处打开文件</p>
-            <input id="filePicker" type="file" style="display: none;" @change="pickedFile" :multiple="multifile"/>
+            <input id="filePicker" type="file" style="display: none;" @change="pickedFile" :multiple="multifile" />
             <p>{{ multifile ? '您可以上传多个文件，它们都会被保存下来' : '您仅可以上传一个文件，新的文件将会覆盖旧的文件'}} </p>
           </div>
           <div class="hide-scrollbar">
@@ -55,15 +55,8 @@ export default {
     return {
       homework: '',
       homeworkList: [
-        {
-          name: '物理实验课',
-          multifile: false
-        }, {
-          name: '数据结构实验',
-          multifile: false
-        }
       ],
-      nowFirstPage: false,
+      nowFirstPage: true,
       studentNumber: '',
       isDragOver: false,
       fileList: [
@@ -95,15 +88,20 @@ export default {
     }
   },
   mounted: function() {
-    
+    let that = this;
+    ajax.get(api.HomeworkList, null, false, function(data) {
+      that.homeworkList = JSON.parse(data);
+    }, function() { }, false)
   },
   methods: {
     goToNext: function() {
       if (this.homework === '' || this.studentNumber === '') {
         return;
       } else {
-        // some logic here...
-        this.nowFirstPage = false;
+        let that = this;
+        ajax.get(api.Verify, 'id=' + this.studentNumber, false, function() {
+          that.nowFirstPage = false;
+        }, function() { alert('你确定你是4班的么...') }, false)
       }
       (function() {
         let fileListDom = document.getElementById('fileList');
@@ -140,10 +138,10 @@ export default {
 
       this.filesHandle(files);
     },
-    opneFilePicker: function () {
+    opneFilePicker: function() {
       document.getElementById('filePicker').click();
     },
-    pickedFile: function () {
+    pickedFile: function() {
       this.filesHandle(document.getElementById('filePicker').files);
     },
     filesHandle: function(files) {
@@ -196,7 +194,7 @@ export default {
         let formData = new FormData;
         formData.append('info', JSON.stringify({
           studentNumber: that.studentNumber,
-          homework: that.homeworkList[parseInt(that.homework)]
+          homework: that.homeworkList[parseInt(that.homework)].id
         }));
         formData.append('file', file);
         ajax.postFormData(api.UploadFile, formData, function() {
@@ -211,6 +209,15 @@ export default {
       }
       let listHandle = function() {
         that.progressRunning = true;
+        let uploadedSize = 0;
+        for (let i = 0; i < that.fileList.length; i++) {
+          if (that.fileList[i].status === 'ok') {
+            uploadedSize += that.fileList[i].file.size;
+          } else if (that.fileList[i].status === 'running') {
+            break;
+          }
+        }
+        that.progress = uploadedSize / that.totalSize;
         let index = 0;
         // console.log(that.fileList.length + '.' + that.fileList[index].status);
         while (index < that.fileList.length && (that.fileList[index].status === 'ok' || that.fileList[index].status === 'error')) {
@@ -263,19 +270,30 @@ body {
           color: white;
           font-size: 40px;
           font-weight: 900;
-        }
+        } // .sub-text {
+        //   // line-height: 28px;
+        //   // display: inline-block;
+        //   // text-align: left;
+        //   // writing-mode: tb-rl;
+        //   color: white;
+        //   font-size: 24px;
+        //   font-weight: 300;
+        //   // transform: rotate(180deg) translateX(100%);
+        //   // margin-left: 100%;
+        //   padding-bottom: 8px;
+        //   border-bottom: solid 2px rgba(255, 255, 255, 0.6);
+        // }
         .sub-text {
-          // line-height: 28px;
-          // display: inline-block;
-          // text-align: left;
-          writing-mode: tb-rl;
+          bottom: 0px;
+          margin-bottom: 0px;
+          display: inline-block;
+          margin-top: 60px;
+          transform: rotate(270deg) translate(10px, 36px);
           color: white;
           font-size: 24px;
           font-weight: 300;
-          transform: rotate(180deg) translateX(100%);
-          margin-left: 100%;
-          padding-bottom: 8px;
-          border-bottom: solid 2px rgba(255, 255, 255, 0.6);
+          padding-right: 8px;
+          border-right: solid 2px rgba(255, 255, 255, 0.6);
         }
       }
     }
@@ -343,7 +361,7 @@ body {
           }
           .progress {
             pointer-events: none;
-            z-index: 0;
+            z-index: -1;
             position: absolute;
             width: 100%;
             height: 100%;

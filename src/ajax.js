@@ -106,7 +106,7 @@ const postFormData = function postFormData (url, formData, successHandle, errorH
         }
       }
     }
-    xmlhttp.addEventListener('progress', progressHandle);
+    xmlhttp.onprogress = progressHandle;
     xmlhttp.open('POST', url, true)
     xmlhttp.send(formData)
   }

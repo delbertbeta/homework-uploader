@@ -1,3 +1,5 @@
 export default {
-  UploadFile: '2333',
+  UploadFile: '/api/upload',
+  HomeworkList: '/api/get_homework_list',
+  Verify: '/api/verify_student_number'
 }
