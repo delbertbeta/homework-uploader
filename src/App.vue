@@ -25,12 +25,13 @@
           </div>
           <img @click="goToNext" class="next-arrow" src="./assets/right_arrow.png" />
         </div>
-        <div class="upload-page" :class="{hide: nowFirstPage}" @dragleave="dragLeave" @drop="dragDrop" @dragover="dragOver">
+        <div class="upload-page" :class="{hide: nowFirstPage}" @dragleave="dragLeave" @drop="dragDrop" @dragover="dragOver" @click="opneFilePicker">
           <div class="drag-status" :class="{'over': isDragOver}"></div>
-          <div class="progress"></div>
+          <div class="progress" :class="{progressRunning: progressRunning}" :style="progressStyle"></div>
           <div class="upload-info">
             <img class="upload-icon" src="./assets/upload.png" />
             <p>拖放或点击此处打开文件</p>
+            <input id="filePicker" type="file" style="display: none;" @change="pickedFile" :multiple="multifile"/>
             <p>{{ multifile ? '您可以上传多个文件，它们都会被保存下来' : '您仅可以上传一个文件，新的文件将会覆盖旧的文件'}} </p>
           </div>
           <div class="hide-scrollbar">
@@ -45,6 +46,9 @@
 </template>
 
 <script>
+import ajax from './ajax';
+import api from './api';
+
 export default {
   name: 'app',
   data() {
@@ -63,7 +67,10 @@ export default {
       studentNumber: '',
       isDragOver: false,
       fileList: [
-      ]
+      ],
+      progress: 0,
+      totalSize: 0,
+      progressRunning: false,
     }
   },
   computed: {
@@ -81,6 +88,14 @@ export default {
       if (work === undefined) return true;
       else return work.multifile;
     },
+    progressStyle: function() {
+      return {
+        bottom: (-100 + this.progress * 100) + '%'
+      }
+    }
+  },
+  mounted: function() {
+    
   },
   methods: {
     goToNext: function() {
@@ -125,28 +140,90 @@ export default {
 
       this.filesHandle(files);
     },
+    opneFilePicker: function () {
+      document.getElementById('filePicker').click();
+    },
+    pickedFile: function () {
+      this.filesHandle(document.getElementById('filePicker').files);
+    },
     filesHandle: function(files) {
+      if (files.length === 0) {
+        return;
+      }
       if (this.multifile) {
         for (let i = 0; i < files.length; i++) {
           let file = files[i];
-          if (file.type === '') continue;
+          // if (file.type === '') continue;
           let fileListItem = {
             filename: file.name,
             status: 'running',
             file: file
           };
+          this.totalSize += file.size;
           this.fileList.push(fileListItem);
         }
       } else {
         let file = files[0];
-        if (file.type === '') return;
+        // if (file.type === '') return;
         let fileList = [{
           filename: file.name,
           status: 'running',
           file: file
         }];
+        this.totalSize = file.size;
         this.fileList = fileList;
       }
+      this.uploadHandle();
+    },
+    uploadHandle: function() {
+      let that = this;
+      if (that.progressRunning === true) {
+        return;
+      }
+      let progressHandle = function(event) {
+        let uploadedSize = 0;
+        for (let i = 0; i < that.fileList.length; i++) {
+          if (that.fileList[i].status === 'ok') {
+            uploadedSize += that.fileList[i].file.size;
+          } else if (that.fileList[i].status === 'running') {
+            break;
+          }
+        }
+        uploadedSize += event.loaded;
+        that.progress = uploadedSize / that.totalSize;
+      }
+      let upload = function(file, index) {
+        let formData = new FormData;
+        formData.append('info', JSON.stringify({
+          studentNumber: that.studentNumber,
+          homework: that.homeworkList[parseInt(that.homework)]
+        }));
+        formData.append('file', file);
+        ajax.postFormData(api.UploadFile, formData, function() {
+          that.$set(that.fileList[index], 'status', 'ok');
+          setTimeout(listHandle.bind(that), 100);
+        }, function() {
+          that.totalSize -= file.size;
+          that.$set(that.fileList[index], 'status', 'error');
+          setTimeout(listHandle.bind(that), 100);
+          // listHandle();
+        }, progressHandle);
+      }
+      let listHandle = function() {
+        that.progressRunning = true;
+        let index = 0;
+        // console.log(that.fileList.length + '.' + that.fileList[index].status);
+        while (index < that.fileList.length && (that.fileList[index].status === 'ok' || that.fileList[index].status === 'error')) {
+          index++;
+        }
+        if (index !== that.fileList.length)
+          upload(that.fileList[index].file, index);
+        else {
+          that.progressRunning = false;
+          return;
+        }
+      }
+      listHandle();
     }
   }
 }
@@ -157,7 +234,7 @@ html {
   height: 100%;
   width: 100%;
   font-family: "Microsoft Yahei UI";
-  min-width: 960px;
+  min-width: 900px;
   min-height: 480px;
 }
 
@@ -333,7 +410,7 @@ body {
                 height: 16px;
                 width: 16px;
                 top: 0px;
-                right: 2px;
+                right: 20px;
                 background-image: url(./assets/ok.png);
                 background-size: 100%;
               }
@@ -344,7 +421,7 @@ body {
                 height: 16px;
                 width: 16px;
                 top: 0px;
-                right: 2px;
+                right: 20px;
                 background-image: url(./assets/error.png);
                 background-size: 100%;
               }
