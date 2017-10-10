@@ -4,6 +4,11 @@
       <div class="shadow"></div>
       <div class="line"></div>
     </div>
+    <div class="blur-background" :class="{show: toastShow}" :style="background"></div>
+    <div class="toast" :class="{show: toastShow}">
+      <i class="priority-icon"></i>
+      <span class="tip-text">队列处理完成</span>
+    </div>
     <div class="left">
       <div class="title-area">
         <p class="horizontal-text">HOMEWORK UPLOADER</p>
@@ -29,6 +34,7 @@
           <div class="drag-status" :class="{'over': isDragOver}"></div>
           <div class="progress" :class="{progressRunning: progressRunning}" :style="progressStyle"></div>
           <div class="upload-info">
+            <img @click="goToFirst" class="goback-arrow" src="./assets/left_arrow.png" />
             <img class="upload-icon" src="./assets/upload.png" />
             <p>拖放或点击此处打开文件</p>
             <input id="filePicker" type="file" style="display: none;" @change="pickedFile" :multiple="multifile" />
@@ -64,6 +70,8 @@ export default {
       progress: 0,
       totalSize: 0,
       progressRunning: false,
+      toastShow: false,
+      hasGoNexted: false,
     }
   },
   computed: {
@@ -103,22 +111,34 @@ export default {
           that.nowFirstPage = false;
         }, function() { alert('你确定你是4班的么...') }, false)
       }
-      (function() {
-        let fileListDom = document.getElementById('fileList');
-        let scrolled = false;
-        fileListDom.addEventListener('scroll', function() {
-          // console.log(fileListDom.scrollTop + "." + fileListDom.scrollHeight )
-          if (fileListDom.scrollTop < fileListDom.scrollHeight - fileListDom.clientHeight) {
-            scrolled = true;
-          } else {
-            scrolled = false;
-          }
-        })
-        setInterval(function() {
-          if (scrolled === false)
-            fileListDom.scrollTop = fileListDom.scrollTopMax;
-        }, 100)
-      })()
+      if (this.hasGoNexted === false) {
+        (function() {
+          let fileListDom = document.getElementById('fileList');
+          let scrolled = false;
+          fileListDom.addEventListener('scroll', function() {
+            // console.log(fileListDom.scrollTop + "." + fileListDom.scrollHeight )
+            if (fileListDom.scrollTop < fileListDom.scrollHeight - fileListDom.clientHeight) {
+              scrolled = true;
+            } else {
+              scrolled = false;
+            }
+          })
+          setInterval(function() {
+            if (scrolled === false)
+              fileListDom.scrollTop = fileListDom.scrollTopMax;
+          }, 100)
+        })()
+      }
+      this.hasGoNexted = true;
+    },
+    goToFirst: function(event) {
+      // event.preventDefault();
+      event.stopPropagation();
+      this.fileList = [];
+      this.progressRunning = false;
+      this.totalSize = 0;
+      this.progress = 0;
+      this.nowFirstPage = true;
     },
     dragOver: function(event) {
       event.preventDefault();
@@ -226,11 +246,22 @@ export default {
         if (index !== that.fileList.length)
           upload(that.fileList[index].file, index);
         else {
+          this.showToast();
           that.progressRunning = false;
           return;
         }
       }
       listHandle();
+    },
+    showToast: function() {
+      if (this.toastShow === true) {
+        return;
+      } else {
+        this.toastShow = true;
+        setTimeout(() => {
+          this.toastShow = false;
+        }, 10000);
+      }
     }
   }
 }
@@ -240,7 +271,7 @@ export default {
 html {
   height: 100%;
   width: 100%;
-  font-family: "Microsoft Yahei UI";
+  font-family: Monospace, "Microsoft Yahei UI";
   min-width: 900px;
   min-height: 480px;
 }
@@ -253,13 +284,14 @@ body {
     width: 100%;
     height: 100%;
     position: relative;
+    overflow: hidden;
     .left {
       position: absolute;
       width: 54%;
       height: 100%;
       overflow: hidden;
       .title-area {
-        animation: move-in-from-right 1s ease 0.6s 1;
+        animation: move-in-from-right 1s cubic-bezier(.82, .02, .12, 1) 0.6s 1;
         animation-fill-mode: both;
         position: absolute;
         right: 25px;
@@ -304,7 +336,7 @@ body {
       height: 100%;
       overflow: hidden;
       .border-area {
-        animation: move-in-from-left 1s ease 0.6s 1;
+        animation: move-in-from-left 1s cubic-bezier(.82, .02, .12, 1) 0.6s 1;
         animation-fill-mode: both;
         position: absolute;
         top: 50%; // transform: translateY(-50%);
@@ -315,7 +347,7 @@ body {
         margin-left: 25px;
         overflow: hidden;
         .info-page {
-          transition: all 1s ease;
+          transition: all 1s cubic-bezier(.82, .02, .12, 1);
           .first-row {
             margin-top: 55px;
           }
@@ -338,13 +370,29 @@ body {
           }
         }
         .upload-page {
-          transition: all 1s ease;
+          transition: all 1s cubic-bezier(.82, .02, .12, 1);
           overflow: hidden;
           height: 100%;
           width: 100%;
           position: absolute;
           top: 0;
           cursor: pointer;
+          .goback-arrow {
+            position: absolute;
+            z-index: 1;
+            top: 20px;
+            left: 20px;
+            height: 25px;
+            width: 25px;
+            cursor: pointer;
+            transition: background-color 0.5s ease;
+            background-color: rgba(0, 0, 0, 0);
+            border-radius: 2px;
+            pointer-events: all;
+          }
+          .goback-arrow:hover {
+            background-color: rgba(255, 255, 255, 0.1)
+          }
           .drag-status {
             pointer-events: none;
             position: absolute;
@@ -479,6 +527,49 @@ body {
       background-color: rgba(0, 0, 0, 0.4);
     }
   }
+  .blur-background {
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
+    filter: blur(10px);
+    position: absolute;
+    width: 250px;
+    height: 60px;
+    top: 20px;
+    right: 0px;
+    border-radius: 2px 0 0 2px;
+    opacity: 0.6;
+    transform: translateX(100%);
+    transition: transform 1s cubic-bezier(.82, .02, .12, 1);
+  }
+  .blur-background.show,
+  .toast.show {
+    transform: translateX(0%);
+  }
+  .toast {
+    position: absolute;
+    width: 250px;
+    height: 60px;
+    top: 20px;
+    right: 0px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 2px 0 0 2px;
+    line-height: 60px;
+    transform: translateX(100%);
+    transition: transform 1s cubic-bezier(.82, .02, .12, 1);
+    .priority-icon {
+      display: inline-block;
+      height: 40px;
+      width: 40px;
+      margin: 0 5px 0 10px;
+      background-image: url(./assets/priority.png);
+      background-size: cover;
+      vertical-align: middle;
+    }
+    .tip-text {
+      vertical-align: middle;
+    }
+  }
 }
 
 .select {
@@ -546,22 +637,22 @@ input:-ms-input-placeholder {
 @keyframes move-in-from-left {
   from {
     opacity: 0;
-    transform: translateX(-100%) scaleX(0.0) translateY(-50%);
+    transform: translateX(-100%) translateY(-50%);
   }
   to {
     opacity: 1;
-    transform: translateX(0%) scaleX(1) translateY(-50%);
+    transform: translateX(0%) translateY(-50%);
   }
 }
 
 @keyframes move-in-from-right {
   from {
     opacity: 0;
-    transform: translateX(100%) scaleX(0.0) translateY(-50%);
+    transform: translateX(100%) translateY(-50%);
   }
   to {
     opacity: 1;
-    transform: translateX(0%) scaleX(1) translateY(-50%);
+    transform: translateX(0%) translateY(-50%);
   }
 }
 
