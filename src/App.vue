@@ -4,7 +4,7 @@
       <div class="shadow"></div>
       <div class="line"></div>
     </div>
-    <div class="blur-background" :class="{show: toastShow}" :style="background"></div>
+    <!-- <div class="blur-background" :class="{show: toastShow}" :style="background"></div> -->
     <div class="toast" :class="{show: toastShow}">
       <i class="priority-icon"></i>
       <span class="tip-text">队列处理完成</span>
@@ -271,7 +271,7 @@ export default {
 html {
   height: 100%;
   width: 100%;
-  font-family: Monospace, "Microsoft Yahei UI";
+  font-family: "Microsoft Yahei UI", Monospace;
   min-width: 900px;
   min-height: 480px;
 }
@@ -552,9 +552,10 @@ body {
     height: 60px;
     top: 20px;
     right: 0px;
-    background-color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 255, 255, 0.8);
     border-radius: 2px 0 0 2px;
     line-height: 60px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     transform: translateX(100%);
     transition: transform 1s cubic-bezier(.82, .02, .12, 1);
     .priority-icon {
