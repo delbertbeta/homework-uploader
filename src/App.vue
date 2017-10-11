@@ -376,6 +376,7 @@ body {
           width: 100%;
           position: absolute;
           top: 0;
+          transform: translateX(0%);
           cursor: pointer;
           .goback-arrow {
             position: absolute;
