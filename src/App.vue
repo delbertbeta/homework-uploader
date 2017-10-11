@@ -348,6 +348,7 @@ body {
         overflow: hidden;
         .info-page {
           transition: all 1s cubic-bezier(.82, .02, .12, 1);
+          transform: translateX(0%);
           .first-row {
             margin-top: 55px;
           }
