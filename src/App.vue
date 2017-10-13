@@ -7,7 +7,7 @@
     <!-- <div class="blur-background" :class="{show: toastShow}" :style="background"></div> -->
     <div class="toast" :class="{show: toastShow}">
       <i class="priority-icon"></i>
-      <span class="tip-text">队列处理完成</span>
+      <span class="tip-text">{{ toastTip }}</span>
     </div>
     <div class="left">
       <div class="title-area">
@@ -72,6 +72,7 @@ export default {
       progressRunning: false,
       toastShow: false,
       hasGoNexted: false,
+      toastTip: '',
     }
   },
   computed: {
@@ -198,6 +199,7 @@ export default {
       if (that.progressRunning === true) {
         return;
       }
+      let errorState = false;
       let progressHandle = function(event) {
         let uploadedSize = 0;
         for (let i = 0; i < that.fileList.length; i++) {
@@ -233,6 +235,8 @@ export default {
         for (let i = 0; i < that.fileList.length; i++) {
           if (that.fileList[i].status === 'ok') {
             uploadedSize += that.fileList[i].file.size;
+          } else if (that.fileList[i].status === 'error') {
+            errorState = true;
           } else if (that.fileList[i].status === 'running') {
             break;
           }
@@ -246,6 +250,11 @@ export default {
         if (index !== that.fileList.length)
           upload(that.fileList[index].file, index);
         else {
+          if (errorState === true) {
+            that.toastTip = '处理队列时有错误发生';
+          } else {
+            that.toastTip = '队列上传成功';
+          }
           this.showToast();
           that.progressRunning = false;
           return;
