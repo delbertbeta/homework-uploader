@@ -12,8 +12,10 @@
     <div class="left">
       <div class="title-area">
         <p class="horizontal-text">HOMEWORK UPLOADER</p>
-        <p class="sub-text">Author:<br />delbertbeta</p>
-        </p>
+        <div class="white-text">
+          <p v-if="ddl !== ''" class="ddl-text">截止日期：{{ddl}}</p>
+          <p v-if="tip !== ''" class="tip-text">{{tip}}</p>
+        </div>
       </div>
     </div>
     <div class="right">
@@ -52,37 +54,53 @@
 </template>
 
 <script>
-import ajax from './ajax';
-import api from './api';
+import ajax from "./ajax";
+import api from "./api";
+import moment from "moment";
 
 export default {
-  name: 'app',
+  name: "app",
   data() {
     return {
-      homework: '',
-      homeworkList: [
-      ],
+      homework: "",
+      homeworkList: [],
       nowFirstPage: true,
-      studentNumber: '',
+      studentNumber: "",
       isDragOver: false,
-      fileList: [
-      ],
+      fileList: [],
       progress: 0,
       totalSize: 0,
       progressRunning: false,
       toastShow: false,
       hasGoNexted: false,
-      toastTip: '',
-    }
+      toastTip: ""
+    };
   },
   computed: {
     background: function() {
       let range = 6 - 1;
       let rand = Math.random();
-      let index = (1 + Math.round(rand * range));
-      let url = 'url(./assets/background_image_' + index + '.jpg)';
+      let index = 1 + Math.round(rand * range);
+      let url = "url(./assets/background_image_" + index + ".jpg)";
       return {
-        backgroundImage: url
+        // backgroundImage: url
+        backgroundImage: "url(./assets/background_image.jpg)"
+      };
+    },
+    tip: function() {
+      if (this.homework === "") {
+        return "";
+      } else {
+        return this.homeworkList[this.homework + 0].tip;
+      }
+    },
+    ddl: function() {
+      if (this.homework === "") {
+        return "";
+      } else {
+        let time = this.homeworkList[this.homework + 0].ddl;
+        let obj = moment(time);
+        return obj.format('YYYY年MM月DD日 HH:mm')
       }
     },
     multifile: function() {
@@ -92,43 +110,62 @@ export default {
     },
     progressStyle: function() {
       return {
-        bottom: (-100 + this.progress * 100) + '%'
-      }
+        bottom: -100 + this.progress * 100 + "%"
+      };
     }
   },
   mounted: function() {
     let that = this;
-    ajax.get(api.HomeworkList, null, false, function(data) {
-      that.homeworkList = JSON.parse(data);
-    }, function() { }, false)
+    ajax.get(
+      api.HomeworkList,
+      null,
+      false,
+      function(data) {
+        that.homeworkList = JSON.parse(data);
+      },
+      function() {},
+      false
+    );
   },
   methods: {
     goToNext: function() {
-      if (this.homework === '' || this.studentNumber === '') {
+      if (this.homework === "" || this.studentNumber === "") {
         return;
       } else {
         let that = this;
-        ajax.get(api.Verify, 'id=' + this.studentNumber, false, function() {
-          that.nowFirstPage = false;
-        }, function() { alert('你确定你是4班的么...') }, false)
+        ajax.get(
+          api.Verify,
+          "id=" + this.studentNumber,
+          false,
+          function() {
+            that.nowFirstPage = false;
+          },
+          function() {
+            alert("你确定你是4班的么...");
+          },
+          false
+        );
       }
       if (this.hasGoNexted === false) {
         (function() {
-          let fileListDom = document.getElementById('fileList');
+          let fileListDom = document.getElementById("fileList");
           let scrolled = false;
-          fileListDom.addEventListener('scroll', function() {
+          fileListDom.addEventListener("scroll", function() {
             // console.log(fileListDom.scrollTop + "." + fileListDom.scrollHeight )
-            if (fileListDom.scrollTop < fileListDom.scrollHeight - fileListDom.clientHeight) {
+            if (
+              fileListDom.scrollTop <
+              fileListDom.scrollHeight - fileListDom.clientHeight
+            ) {
               scrolled = true;
             } else {
               scrolled = false;
             }
-          })
+          });
           setInterval(function() {
             if (scrolled === false)
               fileListDom.scrollTop = fileListDom.scrollTopMax;
-          }, 100)
-        })()
+          }, 100);
+        })();
       }
       this.hasGoNexted = true;
     },
@@ -144,7 +181,7 @@ export default {
     dragOver: function(event) {
       event.preventDefault();
       this.isDragOver = true;
-      event.dataTransfer.dropEffect = 'copy';
+      event.dataTransfer.dropEffect = "copy";
     },
     dragLeave: function(event) {
       event.preventDefault();
@@ -160,10 +197,10 @@ export default {
       this.filesHandle(files);
     },
     opneFilePicker: function() {
-      document.getElementById('filePicker').click();
+      document.getElementById("filePicker").click();
     },
     pickedFile: function() {
-      this.filesHandle(document.getElementById('filePicker').files);
+      this.filesHandle(document.getElementById("filePicker").files);
     },
     filesHandle: function(files) {
       if (files.length === 0) {
@@ -175,7 +212,7 @@ export default {
           // if (file.type === '') continue;
           let fileListItem = {
             filename: file.name,
-            status: 'running',
+            status: "running",
             file: file
           };
           this.totalSize += file.size;
@@ -184,11 +221,13 @@ export default {
       } else {
         let file = files[0];
         // if (file.type === '') return;
-        let fileList = [{
-          filename: file.name,
-          status: 'running',
-          file: file
-        }];
+        let fileList = [
+          {
+            filename: file.name,
+            status: "running",
+            file: file
+          }
+        ];
         this.totalSize = file.size;
         this.fileList = fileList;
       }
@@ -203,63 +242,76 @@ export default {
       let progressHandle = function(event) {
         let uploadedSize = 0;
         for (let i = 0; i < that.fileList.length; i++) {
-          if (that.fileList[i].status === 'ok') {
+          if (that.fileList[i].status === "ok") {
             uploadedSize += that.fileList[i].file.size;
-          } else if (that.fileList[i].status === 'running') {
+          } else if (that.fileList[i].status === "running") {
             break;
           }
         }
         uploadedSize += event.loaded;
         that.progress = uploadedSize / that.totalSize;
-      }
+      };
       let upload = function(file, index) {
-        let formData = new FormData;
-        formData.append('info', JSON.stringify({
-          studentNumber: that.studentNumber,
-          homework: that.homeworkList[parseInt(that.homework)].id
-        }));
-        formData.append('file', file);
-        ajax.postFormData(api.UploadFile, formData, function() {
-          that.$set(that.fileList[index], 'status', 'ok');
-          setTimeout(listHandle.bind(that), 100);
-        }, function() {
-          that.totalSize -= file.size;
-          that.$set(that.fileList[index], 'status', 'error');
-          setTimeout(listHandle.bind(that), 100);
-          // listHandle();
-        }, progressHandle);
-      }
+        let formData = new FormData();
+        formData.append(
+          "info",
+          JSON.stringify({
+            studentNumber: that.studentNumber,
+            homework: that.homeworkList[parseInt(that.homework)].id
+          })
+        );
+        formData.append("file", file);
+        ajax.postFormData(
+          api.UploadFile,
+          formData,
+          function() {
+            that.$set(that.fileList[index], "status", "ok");
+            setTimeout(listHandle.bind(that), 100);
+          },
+          function() {
+            that.totalSize -= file.size;
+            that.$set(that.fileList[index], "status", "error");
+            setTimeout(listHandle.bind(that), 100);
+            // listHandle();
+          },
+          progressHandle
+        );
+      };
       let listHandle = function() {
         that.progressRunning = true;
         let uploadedSize = 0;
         for (let i = 0; i < that.fileList.length; i++) {
-          if (that.fileList[i].status === 'ok') {
+          if (that.fileList[i].status === "ok") {
             uploadedSize += that.fileList[i].file.size;
-          } else if (that.fileList[i].status === 'error') {
+          } else if (that.fileList[i].status === "error") {
             errorState = true;
-          } else if (that.fileList[i].status === 'running') {
+          } else if (that.fileList[i].status === "running") {
             break;
           }
         }
         that.progress = uploadedSize / that.totalSize;
         let index = 0;
         // console.log(that.fileList.length + '.' + that.fileList[index].status);
-        while (index < that.fileList.length && (that.fileList[index].status === 'ok' || that.fileList[index].status === 'error')) {
+        while (
+          index < that.fileList.length &&
+          (that.fileList[index].status === "ok" ||
+            that.fileList[index].status === "error")
+        ) {
           index++;
         }
         if (index !== that.fileList.length)
           upload(that.fileList[index].file, index);
         else {
           if (errorState === true) {
-            that.toastTip = '处理队列时有错误发生';
+            that.toastTip = "处理队列时有错误发生";
           } else {
-            that.toastTip = '队列上传成功';
+            that.toastTip = "队列上传成功";
           }
           this.showToast();
           that.progressRunning = false;
           return;
         }
-      }
+      };
       listHandle();
     },
     showToast: function() {
@@ -273,7 +325,7 @@ export default {
       }
     }
   }
-}
+};
 </script>
 
 <style lang="scss">
@@ -300,7 +352,8 @@ body {
       height: 100%;
       overflow: hidden;
       .title-area {
-        animation: move-in-from-right 1s cubic-bezier(.82, .02, .12, 1) 0.6s 1;
+        animation: move-in-from-right 1s cubic-bezier(0.82, 0.02, 0.12, 1) 0.6s
+          1;
         animation-fill-mode: both;
         position: absolute;
         right: 25px;
@@ -345,7 +398,7 @@ body {
       height: 100%;
       overflow: hidden;
       .border-area {
-        animation: move-in-from-left 1s cubic-bezier(.82, .02, .12, 1) 0.6s 1;
+        animation: move-in-from-left 1s cubic-bezier(0.82, 0.02, 0.12, 1) 0.6s 1;
         animation-fill-mode: both;
         position: absolute;
         top: 50%; // transform: translateY(-50%);
@@ -356,7 +409,7 @@ body {
         margin-left: 25px;
         overflow: hidden;
         .info-page {
-          transition: all 1s cubic-bezier(.82, .02, .12, 1);
+          transition: all 1s cubic-bezier(0.82, 0.02, 0.12, 1);
           transform: translateX(0%);
           .first-row {
             margin-top: 55px;
@@ -373,14 +426,14 @@ body {
             cursor: pointer;
             border-radius: 50%;
             transition: all 0.5s ease;
-            background-color: rgba(0, 0, 0, 0)
+            background-color: rgba(0, 0, 0, 0);
           }
           .next-arrow:hover {
-            background-color: rgba(255, 255, 255, 0.1)
+            background-color: rgba(255, 255, 255, 0.1);
           }
         }
         .upload-page {
-          transition: all 1s cubic-bezier(.82, .02, .12, 1);
+          transition: all 1s cubic-bezier(0.82, 0.02, 0.12, 1);
           overflow: hidden;
           height: 100%;
           width: 100%;
@@ -402,7 +455,7 @@ body {
             pointer-events: all;
           }
           .goback-arrow:hover {
-            background-color: rgba(255, 255, 255, 0.1)
+            background-color: rgba(255, 255, 255, 0.1);
           }
           .drag-status {
             pointer-events: none;
@@ -426,7 +479,11 @@ body {
             height: 100%;
             bottom: -100%;
             transition: all 0.5s ease;
-            background-image: linear-gradient(to bottom, rgba(16, 162, 224, 0.6), rgba(54, 228, 255, 0.6));
+            background-image: linear-gradient(
+              to bottom,
+              rgba(16, 162, 224, 0.6),
+              rgba(54, 228, 255, 0.6)
+            );
           }
           .progress.running {
             animation: wave 5s ease-in-out 0s infinite;
@@ -469,7 +526,7 @@ body {
                 overflow: hidden;
               }
               .file-text.running::after {
-                content: ' ';
+                content: " ";
                 display: block;
                 position: absolute;
                 height: 16px;
@@ -481,7 +538,7 @@ body {
                 animation: rotate 2s linear 0s infinite;
               }
               .file-text.ok::after {
-                content: ' ';
+                content: " ";
                 display: block;
                 position: absolute;
                 height: 16px;
@@ -492,7 +549,7 @@ body {
                 background-size: 100%;
               }
               .file-text.error::after {
-                content: ' ';
+                content: " ";
                 display: block;
                 position: absolute;
                 height: 16px;
@@ -551,7 +608,7 @@ body {
     border-radius: 2px 0 0 2px;
     opacity: 0.6;
     transform: translateX(100%);
-    transition: transform 1s cubic-bezier(.82, .02, .12, 1);
+    transition: transform 1s cubic-bezier(0.82, 0.02, 0.12, 1);
   }
   .blur-background.show,
   .toast.show {
@@ -568,7 +625,7 @@ body {
     line-height: 60px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     transform: translateX(100%);
-    transition: transform 1s cubic-bezier(.82, .02, .12, 1);
+    transition: transform 1s cubic-bezier(0.82, 0.02, 0.12, 1);
     .priority-icon {
       display: inline-block;
       height: 40px;
@@ -645,7 +702,6 @@ input:-ms-input-placeholder {
   color: #ddd;
 }
 
-
 @keyframes move-in-from-left {
   from {
     opacity: 0;
@@ -701,5 +757,9 @@ input:-ms-input-placeholder {
 .filelist-leave-to {
   opacity: 0;
   transform: translateY(4px);
+}
+
+.white-text {
+  color: white;
 }
 </style>
