@@ -1,14 +1,27 @@
 <template>
   <div id="app" class="app">
-    <button @click="change"></button>
-    <div class="container">
-      <div class="header">
+    <div class="container" :class="{
+      'stage-1': stage === 1
+    }">
+      <div class="header" @click="change">
         <img class="logo" src="./assets/logo.svg" />
         <span>Homework Uploder</span>
         <span class="version">beta</span>
       </div>
-      <homework-list :class=""></homework-list>
-      <verify :class=""></verify>
+      <homework-list
+      :class="{
+        'hide': homeworkListOuted, 
+        'in': homeworkListIn,
+        'out': homeworkListOut
+      }"
+      ></homework-list>
+      <verify 
+      :class="{
+        'hide': verifyOuted, 
+        'in': verifyIn, 
+        'out': verifyOut
+      }"
+      ></verify>
     </div>
   </div>
 </template>
@@ -16,23 +29,27 @@
 <script>
 import api from "./api";
 import moment from "moment";
-import HomeworkList from './HomeworkList'
-import verify from './Verify'
+import HomeworkList from "./HomeworkList";
+import verify from "./Verify";
 
 export default {
   name: "app",
   components: {
-    'homework-list': HomeworkList,
-    'verify': verify
+    "homework-list": HomeworkList,
+    verify: verify
   },
   data() {
     return {
-      stage: 0,
+      homeworkListOut: false,
+      homeworkListOuted: false,
+      homeworkListIn: true,
+      verifyOut: false,
+      verifyOuted: true,
+      verifyIn: false,
+      stage: 0
     };
   },
-  computed: {
-    
-  },
+  computed: {},
   mounted: function() {
     // let that = this;
     // ajax.get(
@@ -49,10 +66,22 @@ export default {
   methods: {
     change() {
       if (this.stage === 0) {
+        this.changeView("homeworkList", "verify");
         this.stage = 1;
       } else {
+        this.changeView("verify", "homeworkList");
         this.stage = 0;
       }
+    },
+    changeView(from, to) {
+      this[from + "Out"] = true;
+      this[from + "In"] = false;
+      setTimeout(() => {
+        this[from + "Outed"] = true;
+        this[from + "Out"] = false;
+        this[to + "Outed"] = false;
+        this[to + "In"] = true;
+      }, 500);
     },
     goToNext: function() {
       if (this.homework === "" || this.studentNumber === "") {
@@ -286,6 +315,11 @@ body {
   border-radius: 4px;
   font-weight: 300;
   background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  transition: all 0.5s ease;
 
   .header {
     position: absolute;
@@ -296,7 +330,7 @@ body {
     line-height: 32px;
     vertical-align: middle;
     font-weight: 300;
-    font-family: 'Open Sans', sans-serif;
+    font-family: "Open Sans", sans-serif;
 
     .logo {
       width: 32px;
@@ -309,7 +343,7 @@ body {
       font-size: 8px;
       vertical-align: middle;
       border-radius: 4px;
-      background-color: #4787FF;
+      background-color: #4787ff;
       color: white;
       height: 16px;
       margin: 0;
@@ -319,8 +353,30 @@ body {
   }
 }
 
+.container.stage-1 {
+  height: 400px;
+  width: 350px;
+}
+
+.in {
+  animation: in 0.5s ease both;
+}
+
 .out {
   animation: out 0.5s ease both;
+}
+
+.hide {
+  display: none;
+}
+
+@keyframes in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes out {
@@ -331,5 +387,4 @@ body {
     opacity: 0;
   }
 }
-
 </style>

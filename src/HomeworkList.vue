@@ -63,13 +63,14 @@ export default {
 <style lang="scss">
 .homework-list {
   position: absolute;
-  height: 100%;
-  width: 100%;
+  height: 550px;
+  width: 800px;
   padding: 52px 0 0 0;
   box-sizing: border-box;
   background-color: white;
 }
 .welcome-title {
+  margin-top: 20px;
   text-align: center;
 }
 .show-off-text-wrapper {
@@ -88,7 +89,7 @@ export default {
 .homework-items {
   margin-top: 64px;
   width: 100%;
-  height: 352px;
+  height: 332px;
   overflow-x: hidden;
   overflow-y: auto;
 
