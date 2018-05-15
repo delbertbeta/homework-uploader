@@ -1,7 +1,9 @@
 import Vue from 'vue'
 import App from './App.vue'
+import Axios from 'axios'
+import VueAxios from 'vue-axios'
 
-require.context("./assets/", true, /^\.\/.*\.[png|jpg]/);
+Vue.use(VueAxios, Axios)
 
 new Vue({
   el: '#app',
