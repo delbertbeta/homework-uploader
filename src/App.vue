@@ -1,7 +1,8 @@
 <template>
   <div id="app" class="app">
     <div class="container" :class="{
-      'stage-1': stage === 1
+      'stage-1': stage === 1,
+      'stage-2': stage === 2
     }">
       <div class="header" @click="change">
         <img class="logo" src="./assets/logo.svg" />
@@ -22,6 +23,13 @@
         'out': verifyOut
       }"
       ></verify>
+      <uploaded 
+      :class="{
+        'hide': uploadedOuted, 
+        'in': uploadedIn, 
+        'out': uploadedOut
+      }"
+      ></uploaded>
     </div>
   </div>
 </template>
@@ -29,14 +37,16 @@
 <script>
 import api from "./api";
 import moment from "moment";
-import HomeworkList from "./HomeworkList";
+import homeworkList from "./HomeworkList";
 import verify from "./Verify";
+import uploaded from "./uploaded";
 
 export default {
   name: "app",
   components: {
-    "homework-list": HomeworkList,
-    verify: verify
+    "homework-list": homeworkList,
+    verify: verify,
+    uploaded: uploaded
   },
   data() {
     return {
@@ -46,30 +56,25 @@ export default {
       verifyOut: false,
       verifyOuted: true,
       verifyIn: false,
+      uploadedOut: false,
+      uploadedOuted: true,
+      uploadedIn: false,
       stage: 0
     };
   },
-  computed: {},
   mounted: function() {
-    // let that = this;
-    // ajax.get(
-    //   api.HomeworkList,
-    //   null,
-    //   false,
-    //   function(data) {
-    //     that.homeworkList = JSON.parse(data);
-    //   },
-    //   function() {},
-    //   false
-    // );
+
   },
   methods: {
     change() {
       if (this.stage === 0) {
         this.changeView("homeworkList", "verify");
         this.stage = 1;
+      } else if (this.stage === 1) {
+        this.changeView("verify", "uploaded");
+        this.stage = 2;
       } else {
-        this.changeView("verify", "homeworkList");
+        this.changeView("uploaded", "homeworkList");
         this.stage = 0;
       }
     },
@@ -82,202 +87,6 @@ export default {
         this[to + "Outed"] = false;
         this[to + "In"] = true;
       }, 500);
-    },
-    goToNext: function() {
-      if (this.homework === "" || this.studentNumber === "") {
-        return;
-      } else {
-        let that = this;
-        ajax.get(
-          api.Verify,
-          "id=" + this.studentNumber,
-          false,
-          function() {
-            that.nowFirstPage = false;
-          },
-          function() {
-            alert("你确定你是4班的么...");
-          },
-          false
-        );
-      }
-      if (this.hasGoNexted === false) {
-        (function() {
-          let fileListDom = document.getElementById("fileList");
-          let scrolled = false;
-          fileListDom.addEventListener("scroll", function() {
-            // console.log(fileListDom.scrollTop + "." + fileListDom.scrollHeight )
-            if (
-              fileListDom.scrollTop <
-              fileListDom.scrollHeight - fileListDom.clientHeight
-            ) {
-              scrolled = true;
-            } else {
-              scrolled = false;
-            }
-          });
-          setInterval(function() {
-            if (scrolled === false)
-              fileListDom.scrollTop = fileListDom.scrollTopMax;
-          }, 100);
-        })();
-      }
-      this.hasGoNexted = true;
-    },
-    goToFirst: function(event) {
-      // event.preventDefault();
-      event.stopPropagation();
-      this.fileList = [];
-      this.progressRunning = false;
-      this.totalSize = 0;
-      this.progress = 0;
-      this.nowFirstPage = true;
-    },
-    dragOver: function(event) {
-      event.preventDefault();
-      this.isDragOver = true;
-      event.dataTransfer.dropEffect = "copy";
-    },
-    dragLeave: function(event) {
-      event.preventDefault();
-      this.isDragOver = false;
-    },
-    dragDrop: function(event) {
-      event.preventDefault();
-      this.isDragOver = false;
-
-      let dt = event.dataTransfer;
-      let files = dt.files;
-
-      this.filesHandle(files);
-    },
-    opneFilePicker: function() {
-      document.getElementById("filePicker").click();
-    },
-    pickedFile: function() {
-      this.filesHandle(document.getElementById("filePicker").files);
-    },
-    filesHandle: function(files) {
-      if (files.length === 0) {
-        return;
-      }
-      if (this.multifile) {
-        for (let i = 0; i < files.length; i++) {
-          let file = files[i];
-          // if (file.type === '') continue;
-          let fileListItem = {
-            filename: file.name,
-            status: "running",
-            file: file
-          };
-          this.totalSize += file.size;
-          this.fileList.push(fileListItem);
-        }
-      } else {
-        let file = files[0];
-        // if (file.type === '') return;
-        let fileList = [
-          {
-            filename: file.name,
-            status: "running",
-            file: file
-          }
-        ];
-        this.totalSize = file.size;
-        this.fileList = fileList;
-      }
-      this.uploadHandle();
-    },
-    uploadHandle: function() {
-      let that = this;
-      if (that.progressRunning === true) {
-        return;
-      }
-      let errorState = false;
-      let progressHandle = function(event) {
-        let uploadedSize = 0;
-        for (let i = 0; i < that.fileList.length; i++) {
-          if (that.fileList[i].status === "ok") {
-            uploadedSize += that.fileList[i].file.size;
-          } else if (that.fileList[i].status === "running") {
-            break;
-          }
-        }
-        uploadedSize += event.loaded;
-        that.progress = uploadedSize / that.totalSize;
-      };
-      let upload = function(file, index) {
-        let formData = new FormData();
-        formData.append(
-          "info",
-          JSON.stringify({
-            studentNumber: that.studentNumber,
-            homework: that.homeworkList[parseInt(that.homework)].id
-          })
-        );
-        formData.append("file", file);
-        ajax.postFormData(
-          api.UploadFile,
-          formData,
-          function() {
-            that.$set(that.fileList[index], "status", "ok");
-            setTimeout(listHandle.bind(that), 100);
-          },
-          function() {
-            that.totalSize -= file.size;
-            that.$set(that.fileList[index], "status", "error");
-            setTimeout(listHandle.bind(that), 100);
-            // listHandle();
-          },
-          progressHandle
-        );
-      };
-      let listHandle = function() {
-        that.progressRunning = true;
-        let uploadedSize = 0;
-        for (let i = 0; i < that.fileList.length; i++) {
-          if (that.fileList[i].status === "ok") {
-            uploadedSize += that.fileList[i].file.size;
-          } else if (that.fileList[i].status === "error") {
-            errorState = true;
-          } else if (that.fileList[i].status === "running") {
-            break;
-          }
-        }
-        that.progress = uploadedSize / that.totalSize;
-        let index = 0;
-        // console.log(that.fileList.length + '.' + that.fileList[index].status);
-        while (
-          index < that.fileList.length &&
-          (that.fileList[index].status === "ok" ||
-            that.fileList[index].status === "error")
-        ) {
-          index++;
-        }
-        if (index !== that.fileList.length)
-          upload(that.fileList[index].file, index);
-        else {
-          if (errorState === true) {
-            that.toastTip = "处理队列时有错误发生";
-          } else {
-            that.toastTip = "队列上传成功";
-          }
-          this.showToast();
-          that.progressRunning = false;
-          return;
-        }
-      };
-      listHandle();
-    },
-    showToast: function() {
-      if (this.toastShow === true) {
-        return;
-      } else {
-        this.toastShow = true;
-        setTimeout(() => {
-          this.toastShow = false;
-        }, 10000);
-      }
     }
   }
 };
@@ -356,6 +165,11 @@ body {
 .container.stage-1 {
   height: 400px;
   width: 350px;
+}
+
+.container.stage-2 {
+  height: 550px;
+  width: 950px;
 }
 
 .in {

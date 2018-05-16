@@ -1,6 +1,6 @@
 <template>
   <div class="verify">
-    <div class="verify-title">让我知道你是谁</div>
+    <div class="verify-title">让我们知道你是谁</div>
     <div class="number-input">
       <input class="input" v-model="number" type="tel" placeholder="" />
     </div>
@@ -47,6 +47,7 @@ export default {
 
 .input:focus {
   outline: none;
+  border-bottom: solid 2px black;
 }
 
 .input {
@@ -57,6 +58,7 @@ export default {
   text-align: center;
   font-family: "Open Sans", sans-serif;
   border-bottom: solid 2px rgba(0, 0, 0, 0.2);
+  transition: all 0.5s ease;
 }
 
 .function {
