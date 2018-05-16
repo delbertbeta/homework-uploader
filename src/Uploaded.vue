@@ -16,7 +16,7 @@
       </div>
     </div>
     <div class="uploaded-function">
-      <span class="button secondary-button">返回</span>
+      <span class="button secondary-button" @click="goBack">返回</span>
       <span class="button primary-button">继续</span>
     </div>
   </div>
@@ -28,30 +28,9 @@ import moment from "moment";
 
 export default {
   name: "uploaded",
+  props: ['uploadedList'],
   data() {
     return {
-      uploadedList: [
-        {
-          id: 1,
-          who: "一个人名",
-          student_number: 2016,
-          target: 1,
-          originalFile: "计网.txt",
-          storageFile:
-            "C:\\Users\\delbertbeta\\Desktop\\Projects\\HomeworkUploaderApi\\upload\\test\\2016-软件4班-一个人名\\计网.txt",
-          fileSize: 128,
-          date: "2018-05-16T02:54:01.000Z",
-          homework_list: {
-            id: 1,
-            name: "test",
-            multifile: false,
-            create_folder: false,
-            finished: false,
-            ddl: "2018-05-15T16:02:00.000Z",
-            tip: "你好啊"
-          }
-        }
-      ]
     };
   },
   methods: {
@@ -63,6 +42,9 @@ export default {
     },
     getSize(s) {
       return filesize(s);
+    },
+    goBack() {
+      this.$emit('goBack');
     }
   }
 };

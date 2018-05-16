@@ -4,7 +4,7 @@
       'stage-1': stage === 1,
       'stage-2': stage === 2
     }">
-      <div class="header" @click="change">
+      <div class="header">
         <img class="logo" src="./assets/logo.svg" />
         <span>Homework Uploder</span>
         <span class="version">beta</span>
@@ -16,6 +16,7 @@
         'out': homeworkListOut
       }"
       :homeworkList="homeworkList"
+      @selectHomework="selectHomework"
       ></homework-list>
       <verify 
       :class="{
@@ -23,6 +24,9 @@
         'in': verifyIn, 
         'out': verifyOut
       }"
+      :id="selectedHomework"
+      @goBack="goBack"
+      @idInput="idInput"
       ></verify>
       <uploaded 
       :class="{
@@ -30,6 +34,8 @@
         'in': uploadedIn, 
         'out': uploadedOut
       }"
+      :uploadedList="uploadedList"
+      @goBack="goBack"
       ></uploaded>
     </div>
   </div>
@@ -61,25 +67,18 @@ export default {
       uploadedOuted: true,
       uploadedIn: false,
       stage: 0,
-      homeworkList: []
+      homeworkList: [],
+      selectedHomework: -1,
+      studentId: -1,
+      uploadedList: []
     };
   },
   mounted: function() {
-
+    this.axios.get(api.HomeworkList).then(r => {
+      this.homeworkList = r.data;
+    });
   },
   methods: {
-    change() {
-      if (this.stage === 0) {
-        this.changeView("homeworkList", "verify");
-        this.stage = 1;
-      } else if (this.stage === 1) {
-        this.changeView("verify", "uploaded");
-        this.stage = 2;
-      } else {
-        this.changeView("uploaded", "homeworkList");
-        this.stage = 0;
-      }
-    },
     changeView(from, to) {
       this[from + "Out"] = true;
       this[from + "In"] = false;
@@ -89,6 +88,30 @@ export default {
         this[to + "Outed"] = false;
         this[to + "In"] = true;
       }, 500);
+    },
+    goBack() {
+      if (this.stage === 2) {
+        this.changeView("uploaded", "verify");
+        this.stage = 1;
+      } else if (this.stage === 1) {
+        this.changeView("verify", "homeworkList");
+        this.stage = 0;
+      }
+    },
+    selectHomework(id) {
+      this.selectedHomework = id;
+      this.changeView("homeworkList", "verify");
+      this.stage = 1;
+    },
+    idInput(studentId, uploadedList) {
+      this.studentId = studentId;
+      this.uploadedList = uploadedList;
+      if (uploadedList.length !== 0) {
+        this.changeView("verify", "uploaded");
+        this.stage = 2;
+      } else {
+
+      }
     }
   }
 };

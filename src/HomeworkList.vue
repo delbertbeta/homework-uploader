@@ -8,7 +8,7 @@
     </div>
     <div class="homework-items">
       <div class="nothing-text" v-if="homeworkList.length === 0">这里什么都没有，愉快的玩耍去吧</div>
-      <div v-for="homework in homeworkList" :key="homework.id" class="homework-item">
+      <div @click="homeworkItemClicked(homework)" v-for="homework in homeworkList" :key="homework.id" class="homework-item">
         <span class="homework-name">{{homework.name}}</span>
         <span class="homework-ddl">
           <img class="small-icon" src="./assets/time.svg" />
@@ -37,6 +37,9 @@ export default {
   methods: {
     getDate(s) {
       return moment(s).format("YYYY年MM月DD日 HH:mm");
+    },
+    homeworkItemClicked(i) {
+      this.$emit('selectHomework', i.id);
     }
   }
 };

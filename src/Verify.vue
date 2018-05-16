@@ -2,23 +2,55 @@
   <div class="verify">
     <div class="verify-title">让我知道你是谁</div>
     <div class="number-input">
-      <input class="input" v-model="number" type="tel" placeholder="Student ID" />
+      <input @keypress="inputKeyPress" :class="{error: errorState, shake}" class="input" v-model="number" type="tel" placeholder="Student ID" />
     </div>
     <div class="function">
-      <span class="button secondary-button">返回</span>
-      <span class="button primary-button">下一步</span>
+      <span class="button secondary-button" @click="goBack">返回</span>
+      <span class="button primary-button" @click="check">下一步</span>
     </div>
   </div>
 </template>
 
 <script>
+import api from "./api";
+
 export default {
   name: "homework-list",
-  components: {
-  },
+  props: ["id"],
   data() {
     return {
-      number: ''
+      number: "",
+      errorState: false,
+      shake: false
+    };
+  },
+  methods: {
+    goBack() {
+      this.$emit("goBack");
+    },
+    inputKeyPress(e) {
+      if (e.keyCode === 13) {
+        this.check();
+      }
+    },
+    check() {
+      this.axios.get(api.Verify, {
+        params: {
+          id: this.number,
+          homework: this.id
+        }
+      }).then((r) => {
+        this.$emit('idInput', this.id, r.data);
+      }).catch(() => {
+        this.error();
+      })
+    },
+    error() {
+      this.errorState = true;
+      this.shake = true;
+      setTimeout(() => {
+        this.shake = false;
+      }, 500);
     }
   }
 };
@@ -47,7 +79,7 @@ export default {
 
 .input:focus {
   outline: none;
-  border-bottom: solid 2px black;
+  border-bottom: solid 2px rgb(88, 88, 88);
 }
 
 .input {
@@ -92,5 +124,43 @@ export default {
 }
 .primary-button:hover {
   background-color: #7ba9ff;
+}
+
+.input.error {
+  border-bottom: solid 2px #ff3a3a;
+}
+
+.input.error:focus {
+  border-bottom: solid 2px #ff3a3a;
+}
+
+.shake {
+  animation: shake 0.5s ease 0s 1;
+}
+
+@keyframes shake {
+  from {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-10%);
+  }
+
+  40% {
+    transform: translateX(10%);
+  }
+
+  60% {
+    transform: translateX(-10%);
+  }
+
+  80% {
+    transform: translateX(10%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
 }
 </style>
