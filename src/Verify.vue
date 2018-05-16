@@ -1,6 +1,6 @@
 <template>
   <div class="verify">
-    <div class="verify-title">让我知道你是谁</div>
+    <div class="verify-title">让我知道您是谁</div>
     <div class="number-input">
       <input @keypress="inputKeyPress" :class="{error: errorState, shake}" class="input" v-model="number" type="tel" placeholder="Student ID" />
     </div>
@@ -40,6 +40,7 @@ export default {
           homework: this.id
         }
       }).then((r) => {
+        this.errorState = false;
         this.$emit('idInput', this.id, r.data);
       }).catch(() => {
         this.error();

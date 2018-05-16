@@ -2,7 +2,8 @@
   <div id="app" class="app">
     <div class="container" :class="{
       'stage-1': stage === 1,
-      'stage-2': stage === 2
+      'stage-2': stage === 2,
+      'stage-3': stage === 3
     }">
       <div class="header">
         <img class="logo" src="./assets/logo.svg" />
@@ -36,6 +37,7 @@
       }"
       :uploadedList="uploadedList"
       @goBack="goBack"
+      @goToUpload="goToUpload"
       ></uploaded>
     </div>
   </div>
@@ -73,6 +75,18 @@ export default {
       uploadedList: []
     };
   },
+  computed: {
+    selectedHomeworkObj() {
+      if (this.selectedHomework === -1) {
+        return {
+          name: '',
+          tip: '',
+        }
+      } else {
+        return this.homeworkList[this.selectedHomework];
+      }
+    }
+  },
   mounted: function() {
     this.axios.get(api.HomeworkList).then(r => {
       this.homeworkList = r.data;
@@ -90,7 +104,15 @@ export default {
       }, 500);
     },
     goBack() {
-      if (this.stage === 2) {
+      if (this.stage === 3) {
+        if (this.uploadedList.length === 0) {
+          this.changeView('upload', 'verify');
+          this.stage = 1;
+        } else {
+          this.changeView('upload', 'uploaded');
+          this.stage = 2;
+        }
+      } else if (this.stage === 2) {
         this.changeView("uploaded", "verify");
         this.stage = 1;
       } else if (this.stage === 1) {
@@ -110,8 +132,13 @@ export default {
         this.changeView("verify", "uploaded");
         this.stage = 2;
       } else {
-
+        this.changeView("verify", "upload");
+        this.stage = 3;
       }
+    },
+    goToUpload() {
+        this.changeView("uploaded", "upload");
+        this.stage = 3;
     }
   }
 };
@@ -195,6 +222,11 @@ body {
 .container.stage-2 {
   height: 550px;
   width: 950px;
+}
+
+.container.stage-3 {
+  height: 650px;
+  width: 500px;
 }
 
 .in {

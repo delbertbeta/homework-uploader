@@ -17,7 +17,7 @@
     </div>
     <div class="uploaded-function">
       <span class="button secondary-button" @click="goBack">返回</span>
-      <span class="button primary-button">继续</span>
+      <span class="button primary-button" @click="$emit('goToUpload')">继续</span>
     </div>
   </div>
 </template>
@@ -115,7 +115,6 @@ export default {
   .uploaded-item:hover {
     color: black;
     background-color: #eeeeee;
-    cursor: pointer;
   }
 }
 
