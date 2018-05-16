@@ -1,8 +1,8 @@
 <template>
   <div class="verify">
-    <div class="verify-title">让我们知道你是谁</div>
+    <div class="verify-title">让我知道你是谁</div>
     <div class="number-input">
-      <input class="input" v-model="number" type="tel" placeholder="" />
+      <input class="input" v-model="number" type="tel" placeholder="Student ID" />
     </div>
     <div class="function">
       <span class="button secondary-button">返回</span>

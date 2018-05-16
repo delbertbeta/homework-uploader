@@ -2,7 +2,7 @@
   <div class="uploaded-container">
     <div class="uploaded-title">
       <p class="bold-text">emmm...</p>
-      <p class="title-text">我们发现您有过以下的提交记录</p>
+      <p class="title-text">发现您有过以下的提交记录</p>
     </div>
     <div class="uploaded-items">
       <div v-for="(uploaded,index) in uploadedList" :key="uploaded.id" class="uploaded-item">

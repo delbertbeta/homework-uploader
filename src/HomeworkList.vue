@@ -7,6 +7,7 @@
       <span class="title-text">请选择一个作业以开始</span>
     </div>
     <div class="homework-items">
+      <div class="nothing-text" v-if="homeworkList.length === 0">这里什么都没有，愉快的玩耍去吧</div>
       <div v-for="homework in homeworkList" :key="homework.id" class="homework-item">
         <span class="homework-name">{{homework.name}}</span>
         <span class="homework-ddl">
@@ -32,26 +33,7 @@ export default {
     "show-off-text": animateText,
     "no-more": noMore
   },
-  data() {
-    return {
-      homeworkList: [
-        {
-          id: 1,
-          name: "测试作业",
-          multifile: true,
-          ddl: "2018-05-14T16:02:00.000Z",
-          tip: "这是一个提醒"
-        },
-        {
-          id: 1,
-          name: "数据库第二次实验报告",
-          multifile: true,
-          ddl: "2018-05-14T16:02:00.000Z",
-          tip: "这是一个提醒"
-        }
-      ]
-    };
-  },
+  props: ['homeworkList'],
   methods: {
     getDate(s) {
       return moment(s).format("YYYY年MM月DD日 HH:mm");
@@ -98,6 +80,12 @@ export default {
     font-size: 16px;
     text-align: center;
     color: #cfcfcf;
+  }
+
+  .nothing-text {
+    text-align: center;
+    font-size: 24px;
+    color: #888888;
   }
 
   .homework-item {

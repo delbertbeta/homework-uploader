@@ -15,6 +15,7 @@
         'in': homeworkListIn,
         'out': homeworkListOut
       }"
+      :homeworkList="homeworkList"
       ></homework-list>
       <verify 
       :class="{
@@ -59,7 +60,8 @@ export default {
       uploadedOut: false,
       uploadedOuted: true,
       uploadedIn: false,
-      stage: 0
+      stage: 0,
+      homeworkList: []
     };
   },
   mounted: function() {
