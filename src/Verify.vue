@@ -41,7 +41,7 @@ export default {
         }
       }).then((r) => {
         this.errorState = false;
-        this.$emit('idInput', this.id, r.data);
+        this.$emit('idInput', this.number, r.data);
       }).catch(() => {
         this.error();
       })

@@ -144,12 +144,13 @@ export default {
             this.$set(
               this.uploadList[index],
               "progress",
-              Math.floor(e.loaded / e.total)
+              Math.floor(e.loaded / e.total * 100)
             );
           }
         };
         axios(config)
           .then(() => {
+            this.$set(this.uploadList[index], "progress", 100);
             this.$set(this.uploadList[index], "handled", true);
             upload();
           })
