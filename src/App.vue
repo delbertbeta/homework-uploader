@@ -64,6 +64,12 @@
       @goToHome="goToHome"
       ></finished>
     </div>
+    <div class="background-container">
+      <div class="background-img" :class="{fadeIn: backgroundLoaded}" :style="{backgroundImage: 'url(' + backgroundUrl + ')'}"></div>
+      <div class="background-mask" :class="{fadeIn: backgroundLoaded}"></div>
+    </div>
+    <div v-if="backgroundError" class="info">Error occurs when requesting Unsplash API.</div>
+    <div v-if="backgroundLoaded" class="info">Photo by {{backgroundInfo.author}}, visit it on <a :href="backgroundInfo.url">Unsplash.</a></div>
   </div>
 </template>
 
@@ -74,7 +80,7 @@ import homeworkList from "./HomeworkList";
 import verify from "./Verify";
 import uploaded from "./Uploaded";
 import upload from "./Upload";
-import finished from './Finished'
+import finished from "./Finished";
 
 export default {
   name: "app",
@@ -88,8 +94,8 @@ export default {
   data() {
     return {
       homeworkListOut: false,
-      homeworkListOuted: true,
-      homeworkListIn: false,
+      homeworkListOuted: false,
+      homeworkListIn: true,
       verifyOut: false,
       verifyOuted: true,
       verifyIn: false,
@@ -100,10 +106,10 @@ export default {
       uploadOuted: true,
       uploadIn: false,
       finishedOut: false,
-      finishedOuted: false,
-      finishedIn: true,
+      finishedOuted: true,
+      finishedIn: false,
       hover: false,
-      stage: 4,
+      stage: 0,
       homeworkList: [],
       selectedHomework: -1,
       studentId: -1,
@@ -113,13 +119,38 @@ export default {
         name: "",
         tip: "",
         multifile: false
-      }
+      },
+      backgroundUrl: "",
+      backgroundLoaded: false,
+      backgroundError: false,
+      backgroundInfo: {}
     };
   },
   mounted: function() {
     this.axios.get(api.HomeworkList).then(r => {
       this.homeworkList = r.data;
     });
+    this.axios
+      .get(api.Unsplash)
+      .then(r => {
+        const index = Math.floor(Math.random() * 10);
+        const item = r.data[index];
+        const image = new Image();
+        image.src = item.urls.regular;
+        image.onload = () => {
+          this.backgroundUrl = image.src;
+          setTimeout(() => {
+            this.backgroundLoaded = true;
+          }, 1000);
+        };
+        this.backgroundInfo = {
+          author: item.user.name,
+          url: item.links.html
+        };
+      })
+      .catch(() => {
+        this.backgroundError = true;
+      });
   },
   methods: {
     changeView(from, to) {
@@ -163,13 +194,13 @@ export default {
         this.stage = 2;
       } else {
         this.changeView("verify", "upload");
-        this.$refs['uploadComponent'].clearList();
+        this.$refs["uploadComponent"].clearList();
         this.stage = 3;
       }
     },
     goToUpload() {
       this.changeView("uploaded", "upload");
-      this.$refs['uploadComponent'].clearList();
+      this.$refs["uploadComponent"].clearList();
       this.stage = 3;
     },
     goToFinished() {
@@ -177,7 +208,7 @@ export default {
       this.stage = 4;
     },
     goToHome() {
-      this.changeView('finished', 'homeworkList');
+      this.changeView("finished", "homeworkList");
       this.stage = 0;
     },
     onHover() {
@@ -194,7 +225,8 @@ export default {
 html {
   height: 100%;
   width: 100%;
-  font-family: "Microsoft YaHei UI", "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB", "Microsoft YaHei","微软雅黑",Arial,sans-serif;
+  font-family: "Microsoft YaHei UI", "Helvetica Neue", Helvetica, "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
   // font-family: "Microsoft Yahei UI", Monospace;
   min-width: 900px;
   min-height: 480px;
@@ -213,6 +245,53 @@ body {
   justify-content: center;
   align-items: center;
   flex-direction: column;
+}
+
+.background-container {
+  position: fixed;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: -1;
+
+  .background-img {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: all 1s ease;
+  }
+  .background-img.fadeIn,
+  .background-mask.fadeIn {
+    opacity: 1;
+  }
+  .background-mask {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    z-index: 0;
+    opacity: 0.01;
+    background-color: rgba(0, 0, 0, 0.5);
+    transition: all 1s ease;
+  }
+}
+.info {
+  position: fixed;
+  bottom: 32px;
+  left: 24px;
+  font-family: "Open Sans", sans-serif;
+  font-size: 12px;
+  color: #bebebe;
+  z-index: 1;
+  a,
+  a:visited {
+    color: #bebebe;
+    text-decoration: none;
+    border-bottom: solid 1px #bebebe;
+  }
 }
 
 .container {

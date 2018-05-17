@@ -119,7 +119,7 @@ export default {
 }
 
 .uploaded-function {
-  margin: 16px 200px 0 200px;
+  margin: 28px 200px 0 200px;
   display: flex;
   justify-content: space-between;
 
