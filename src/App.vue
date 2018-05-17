@@ -3,11 +3,12 @@
     <div class="container" :class="{
       'stage-1': stage === 1,
       'stage-2': stage === 2,
-      'stage-3': stage === 3
+      'stage-3': stage === 3,
+      'hover': hover
     }">
       <div class="header">
         <img class="logo" src="./assets/logo.svg" />
-        <span>Homework Uploder</span>
+        <span>Homework Uploader</span>
         <span class="version">beta</span>
       </div>
       <homework-list
@@ -39,6 +40,18 @@
       @goBack="goBack"
       @goToUpload="goToUpload"
       ></uploaded>
+      <upload
+      :class="{
+        'hide': uploadOuted, 
+        'in': uploadIn, 
+        'out': uploadOut
+      }"
+      :homework="selectedHomeworkObj"
+      @goBack="goBack"
+      @goToFinished="goToFinished"
+      @onHover="onHover"
+      @onHoverOut="onHoverOut"
+      ></upload>
     </div>
   </div>
 </template>
@@ -49,13 +62,15 @@ import moment from "moment";
 import homeworkList from "./HomeworkList";
 import verify from "./Verify";
 import uploaded from "./uploaded";
+import upload from "./upload";
 
 export default {
   name: "app",
   components: {
     "homework-list": homeworkList,
     verify: verify,
-    uploaded: uploaded
+    uploaded: uploaded,
+    upload: upload
   },
   data() {
     return {
@@ -68,24 +83,22 @@ export default {
       uploadedOut: false,
       uploadedOuted: true,
       uploadedIn: false,
+      uploadOut: false,
+      uploadOuted: true,
+      uploadIn: false,
+      hover: false,
       stage: 0,
       homeworkList: [],
       selectedHomework: -1,
       studentId: -1,
-      uploadedList: []
-    };
-  },
-  computed: {
-    selectedHomeworkObj() {
-      if (this.selectedHomework === -1) {
-        return {
-          name: '',
-          tip: '',
-        }
-      } else {
-        return this.homeworkList[this.selectedHomework];
+      uploadedList: [],
+      selectedHomeworkObj: {
+        id: -1,
+        name: "",
+        tip: "",
+        multifile: false
       }
-    }
+    };
   },
   mounted: function() {
     this.axios.get(api.HomeworkList).then(r => {
@@ -106,10 +119,10 @@ export default {
     goBack() {
       if (this.stage === 3) {
         if (this.uploadedList.length === 0) {
-          this.changeView('upload', 'verify');
+          this.changeView("upload", "verify");
           this.stage = 1;
         } else {
-          this.changeView('upload', 'uploaded');
+          this.changeView("upload", "uploaded");
           this.stage = 2;
         }
       } else if (this.stage === 2) {
@@ -120,8 +133,9 @@ export default {
         this.stage = 0;
       }
     },
-    selectHomework(id) {
-      this.selectedHomework = id;
+    selectHomework(homework) {
+      this.selectedHomework = homework.id;
+      this.selectedHomeworkObj = homework;
       this.changeView("homeworkList", "verify");
       this.stage = 1;
     },
@@ -137,8 +151,15 @@ export default {
       }
     },
     goToUpload() {
-        this.changeView("uploaded", "upload");
-        this.stage = 3;
+      this.changeView("uploaded", "upload");
+      this.stage = 3;
+    },
+    goToFinished() {},
+    onHover() {
+      this.hover = true;
+    },
+    onHoverOut() {
+      this.hover = false;
     }
   }
 };
@@ -227,6 +248,11 @@ body {
 .container.stage-3 {
   height: 650px;
   width: 500px;
+}
+
+.container.hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
 }
 
 .in {

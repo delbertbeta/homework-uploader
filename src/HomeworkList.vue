@@ -39,7 +39,7 @@ export default {
       return moment(s).format("YYYY年MM月DD日 HH:mm");
     },
     homeworkItemClicked(i) {
-      this.$emit('selectHomework', i.id);
+      this.$emit('selectHomework', i);
     }
   }
 };

@@ -80,7 +80,7 @@ export default {
 .uploaded-items {
   margin-top: 32px;
   width: 100%;
-  height: 300px;
+  height: 280px;
   overflow-x: hidden;
   overflow-y: auto;
 
