@@ -4,6 +4,7 @@
       'stage-1': stage === 1,
       'stage-2': stage === 2,
       'stage-3': stage === 3,
+      'stage-4': stage === 4,
       'hover': hover
     }">
       <div class="header">
@@ -54,6 +55,14 @@
       @onHover="onHover"
       @onHoverOut="onHoverOut"
       ></upload>
+      <finished
+      :class="{
+        'hide': finishedOuted, 
+        'in': finishedIn, 
+        'out': finishedOut
+      }"
+      @goToHome="goToHome"
+      ></finished>
     </div>
   </div>
 </template>
@@ -63,8 +72,9 @@ import api from "./api";
 import moment from "moment";
 import homeworkList from "./HomeworkList";
 import verify from "./Verify";
-import uploaded from "./uploaded";
-import upload from "./upload";
+import uploaded from "./Uploaded";
+import upload from "./Upload";
+import finished from './Finished'
 
 export default {
   name: "app",
@@ -72,13 +82,14 @@ export default {
     "homework-list": homeworkList,
     verify: verify,
     uploaded: uploaded,
-    upload: upload
+    upload: upload,
+    finished: finished
   },
   data() {
     return {
       homeworkListOut: false,
-      homeworkListOuted: false,
-      homeworkListIn: true,
+      homeworkListOuted: true,
+      homeworkListIn: false,
       verifyOut: false,
       verifyOuted: true,
       verifyIn: false,
@@ -88,8 +99,11 @@ export default {
       uploadOut: false,
       uploadOuted: true,
       uploadIn: false,
+      finishedOut: false,
+      finishedOuted: false,
+      finishedIn: true,
       hover: false,
-      stage: 0,
+      stage: 4,
       homeworkList: [],
       selectedHomework: -1,
       studentId: -1,
@@ -158,7 +172,14 @@ export default {
       this.$refs['uploadComponent'].clearList();
       this.stage = 3;
     },
-    goToFinished() {},
+    goToFinished() {
+      this.changeView("upload", "finished");
+      this.stage = 4;
+    },
+    goToHome() {
+      this.changeView('finished', 'homeworkList');
+      this.stage = 0;
+    },
     onHover() {
       this.hover = true;
     },
@@ -253,6 +274,11 @@ body {
 .container.stage-3 {
   height: 650px;
   width: 500px;
+}
+
+.container.stage-4 {
+  height: 500px;
+  width: 400px;
 }
 
 .container.hover {
