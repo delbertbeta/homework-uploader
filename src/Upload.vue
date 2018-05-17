@@ -80,6 +80,7 @@ export default {
       this.filesHandle(document.getElementById("filePicker").files);
     },
     filesHandle(files) {
+      console.log(files);
       let curFiles = files;
       if (curFiles.length === 0) {
         return;
@@ -122,6 +123,7 @@ export default {
         if (index === -1) {
           this.canNext = true;
           this.uploadingLock = false;
+          document.getElementById("filePicker").value = '';
           return;
         }
         let formData = new FormData();
@@ -163,6 +165,7 @@ export default {
       upload();
     },
     clearList() {
+      this.canNext = false;
       this.uploadList = [];
     }
   }
