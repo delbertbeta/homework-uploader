@@ -133,6 +133,7 @@ export default {
           })
         );
         formData.append("file", this.uploadList[index].file);
+        let that = this;
         let config = {
           url: api.UploadFile,
           method: 'post',
@@ -141,8 +142,8 @@ export default {
             "content-type": "multipart/form-data"
           },
           onUploadProgress(e) {
-            this.$set(
-              this.uploadList[index],
+            that.$set(
+              that.uploadList[index],
               "progress",
               Math.floor(e.loaded / e.total * 100)
             );

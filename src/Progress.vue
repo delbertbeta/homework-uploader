@@ -11,12 +11,12 @@
 let interval;
 export default {
   name: "custom-progress",
-  props: ["progress", "error"],
+  props: ["progress", "handled", "error"],
   data() {
     return {
       progressBar: 0,
-      textProgress: '0%',
-      errorState: false,
+      textProgress: "0%",
+      errorState: false
     };
   },
   methods: {
@@ -35,13 +35,13 @@ export default {
             1023 +
           from;
         display = display.toFixed(0);
-        this.textProgress = display + '%';
+        this.textProgress = display + "%";
 
         if (progress < timeout) {
           requestAnimationFrame(callback);
         } else {
-            if (this.handled) {
-            this.textProgress = '完成';
+          if (this.handled) {
+            this.textProgress = "完成";
             clearInterval(interval);
           }
         }
@@ -53,7 +53,7 @@ export default {
     interval = setInterval(() => {
       if (this.error) {
         this.errorState = true;
-        this.textProgress = '错误'
+        this.textProgress = "错误";
         clearInterval(interval);
         return;
       }
