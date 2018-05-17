@@ -6,13 +6,14 @@
     <div class="homework-title">{{homework.name}}</div>
     <div class="homework-subtitle">{{multifile}}</div>
     <div class="homework-tip">{{homework.tip}}</div>
-    <div class="upload-button">点击或拖拽文件开始上传</div>
+    <div class="upload-button" @click="openFilePicker">点击或拖拽文件开始上传</div>
+    <input id="filePicker" type="file" style="display: none;" @change="pickedFile" :multiple="homework.multifile" />
     <div class="upload-list">
       <div class="upload-item" 
         v-for="(upload, index) in uploadList" 
         :key="index">
         <span>{{upload.name}}</span>
-        <custom-progress :progress="upload.progress"></custom-progress>
+        <custom-progress :error="upload.error" :progress="upload.progress"></custom-progress>
       </div>
     </div>
     <div class="upload-function">
@@ -24,23 +25,20 @@
 
 <script>
 import progress from "./Progress";
+import api from "./api";
+import axios from 'axios';
 
 export default {
   name: "upload",
-  props: ["homework"],
+  props: ["homework", "id"],
   components: {
     "custom-progress": progress
   },
   data() {
     return {
       canNext: false,
-      uploadList: [
-        {
-          name: "1.txt",
-          progress: 0,
-          handled: true
-        }
-      ]
+      uploadList: [],
+      uploadingLock: false
     };
   },
   computed: {
@@ -58,6 +56,7 @@ export default {
     },
     goToFinished() {
       if (this.canNext) {
+        this.$emit('goToFinished');
       }
     },
     dragOver(e) {
@@ -72,6 +71,97 @@ export default {
     drop(e) {
       e.preventDefault();
       this.$emit("onHoverOut");
+      this.filesHandle(e.dataTransfer.files);
+    },
+    openFilePicker() {
+      document.getElementById("filePicker").click();
+    },
+    pickedFile() {
+      this.filesHandle(document.getElementById("filePicker").files);
+    },
+    filesHandle(files) {
+      let curFiles = files;
+      if (curFiles.length === 0) {
+        return;
+      }
+      if (this.homework.multifile) {
+        Array.prototype.forEach.call(curFiles, element => {
+          this.uploadList.push({
+            name: element.name,
+            progress: 0,
+            handled: false,
+            error: false,
+            file: element
+          });
+        });
+      } else {
+        this.uploadList.push({
+          name: curFiles[0].name,
+          progress: 0,
+          handled: false,
+          error: false
+        });
+      }
+      this.uploadHandle();
+    },
+    uploadHandle() {
+      if (this.uploadingLock) {
+        return;
+      }
+      let upload = () => {
+        this.uploadingLock = true;
+        let index = -1;
+        for (let i = 0; i < this.uploadList.length; i++) {
+          if (
+            this.uploadList[i].handled === false &&
+            this.uploadList[i].error === false
+          ) {
+            index = i;
+          }
+        }
+        if (index === -1) {
+          this.canNext = true;
+          this.uploadingLock = false;
+          return;
+        }
+        let formData = new FormData();
+        formData.append(
+          "info",
+          JSON.stringify({
+            studentNumber: this.id,
+            homework: this.homework.id
+          })
+        );
+        formData.append("file", this.uploadList[index].file);
+        let config = {
+          url: api.UploadFile,
+          method: 'post',
+          data: formData,
+          headers: {
+            "content-type": "multipart/form-data"
+          },
+          onUploadProgress(e) {
+            this.$set(
+              this.uploadList[index],
+              "progress",
+              Math.floor(e.loaded / e.total)
+            );
+          }
+        };
+        axios(config)
+          .then(() => {
+            this.$set(this.uploadList[index], "handled", true);
+            upload();
+          })
+          .catch(() => {
+            this.$set(this.uploadList[index], "error", true);
+            upload();
+          });
+      };
+      upload();
+    },
+    clearList() {
+      this.uploadList = [];
     }
   }
 };

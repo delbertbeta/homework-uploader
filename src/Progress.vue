@@ -1,49 +1,67 @@
 <template>
   <div class="progress-wrapper">
-    <div class="progress-bar" :style="{
+    <div class="progress-bar" :class="{error: errorState}" :style="{
       width: progressBar + '%'
     }"></div>
-    <span class="progress-text">{{textProgress}}%</span>
+    <span class="progress-text">{{textProgress}}</span>
   </div>
 </template>
 
 <script>
+let interval;
 export default {
   name: "custom-progress",
-  props: ["progress"],
+  props: ["progress", "error"],
   data() {
     return {
       progressBar: 0,
-      textProgress: 0
+      textProgress: '0%',
+      errorState: false,
     };
   },
   methods: {
     textAnimation(from, to, timeout) {
-        let startTime = -1;
+      let startTime = -1;
 
-        let callback = timestamp => {
-            if (startTime === -1) {
-                startTime = timestamp;
-            }
-            let progress = timestamp - startTime;
-            // let display = (from + (to - from) * ((Math.sin((progress) * Math.PI - Math.PI / 2) + 1) / 2)).toFixed(0);
-            let display = (to - from) * (-Math.pow(2, -10 * progress / timeout) + 1) * 1024 / 1023 + from;
-            display = display.toFixed(0);
-            // console.log(display);
-            this.textProgress = display;
-            
-            if (progress < timeout) {
-                requestAnimationFrame(callback);
-            }
+      let callback = timestamp => {
+        if (startTime === -1) {
+          startTime = timestamp;
         }
-        requestAnimationFrame(callback);
+        let progress = timestamp - startTime;
+        let display =
+          (to - from) *
+            (-Math.pow(2, -10 * progress / timeout) + 1) *
+            1024 /
+            1023 +
+          from;
+        display = display.toFixed(0);
+        this.textProgress = display + '%';
+
+        if (progress < timeout) {
+          requestAnimationFrame(callback);
+        } else {
+            if (this.handled) {
+            this.textProgress = '完成';
+            clearInterval(interval);
+          }
+        }
+      };
+      requestAnimationFrame(callback);
     }
   },
   mounted() {
-    setInterval(() => {
-      this.progressBar = this.progress;
-      this.textAnimation(parseInt(this.textProgress), this.progress, 1000);
-    }, 1200)
+    interval = setInterval(() => {
+      if (this.error) {
+        this.errorState = true;
+        this.textProgress = '错误'
+        clearInterval(interval);
+        return;
+      }
+      if (parseInt(this.textProgress) !== this.progress) {
+        this.progressBar = this.progress;
+        this.textAnimation(parseInt(this.textProgress), this.progress, 1000);
+      }
+    }, 1200);
   }
 };
 </script>
@@ -63,6 +81,9 @@ export default {
     top: 0;
     background-color: #eeeeee;
     transition: all 0.5s ease;
+  }
+  .progress-bar.error {
+    background-color: #ff8f8f;
   }
   .progress-text {
     position: absolute;

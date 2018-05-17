@@ -46,7 +46,9 @@
         'in': uploadIn, 
         'out': uploadOut
       }"
+      ref="uploadComponent"
       :homework="selectedHomeworkObj"
+      :id="studentId"
       @goBack="goBack"
       @goToFinished="goToFinished"
       @onHover="onHover"
@@ -147,11 +149,13 @@ export default {
         this.stage = 2;
       } else {
         this.changeView("verify", "upload");
+        this.$refs['uploadComponent'].clearList();
         this.stage = 3;
       }
     },
     goToUpload() {
       this.changeView("uploaded", "upload");
+      this.$refs['uploadComponent'].clearList();
       this.stage = 3;
     },
     goToFinished() {},
@@ -169,7 +173,8 @@ export default {
 html {
   height: 100%;
   width: 100%;
-  font-family: "Microsoft Yahei UI", Monospace;
+  font-family: "Microsoft YaHei UI", "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB", "Microsoft YaHei","微软雅黑",Arial,sans-serif;
+  // font-family: "Microsoft Yahei UI", Monospace;
   min-width: 900px;
   min-height: 480px;
 }
