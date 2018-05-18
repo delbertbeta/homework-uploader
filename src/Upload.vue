@@ -100,7 +100,8 @@ export default {
           name: curFiles[0].name,
           progress: 0,
           handled: false,
-          error: false
+          error: false,
+          file: curFiles[0]
         });
       }
       this.uploadHandle();
@@ -135,6 +136,7 @@ export default {
           })
         );
         formData.append("file", this.uploadList[index].file);
+        console.log(this.uploadList);
         let that = this;
         let config = {
           url: api.UploadFile,
