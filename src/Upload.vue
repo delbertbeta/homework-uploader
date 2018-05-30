@@ -227,7 +227,8 @@ export default {
   .upload-list {
     margin: 20px 0;
     height: 240px;
-    overflow: hidden auto;
+    overflow-x: hidden;
+    overflow-y: auto;
 
     .upload-item {
       position: relative;
