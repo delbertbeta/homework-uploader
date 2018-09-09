@@ -74,6 +74,10 @@ export default {
   height: 100%;
   left: 0;
   top: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: content-box;
 
   .progress-bar {
     height: 100%;

@@ -12,7 +12,7 @@
       <div class="upload-item" 
         v-for="(upload, index) in uploadList" 
         :key="index">
-        <span>{{upload.name}}</span>
+        <div class="item-name">{{upload.name}}</div>
         <custom-progress :error="upload.error" :progress="upload.progress"></custom-progress>
       </div>
     </div>
@@ -26,7 +26,7 @@
 <script>
 import progress from "./Progress";
 import api from "./api";
-import axios from 'axios';
+import axios from "axios";
 
 export default {
   name: "upload",
@@ -56,7 +56,7 @@ export default {
     },
     goToFinished() {
       if (this.canNext) {
-        this.$emit('goToFinished');
+        this.$emit("goToFinished");
       }
     },
     dragOver(e) {
@@ -124,7 +124,7 @@ export default {
         if (index === -1) {
           this.canNext = true;
           this.uploadingLock = false;
-          document.getElementById("filePicker").value = '';
+          document.getElementById("filePicker").value = "";
           return;
         }
         let formData = new FormData();
@@ -140,7 +140,7 @@ export default {
         let that = this;
         let config = {
           url: api.UploadFile,
-          method: 'post',
+          method: "post",
           data: formData,
           headers: {
             "content-type": "multipart/form-data"
@@ -204,7 +204,7 @@ export default {
     overflow-y: auto;
     background-color: #f3f3f3;
     border-radius: 4px;
-    pointer-events: none;
+    // pointer-events: none;
   }
 
   .upload-button {
@@ -236,6 +236,14 @@ export default {
       color: #555555;
       padding: 12px 28px;
       border-bottom: dashed 1px #eeeeee;
+
+      .item-name {
+        padding-right: 46px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        box-sizing: content-box;
+      }
     }
   }
 
